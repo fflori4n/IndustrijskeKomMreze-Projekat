@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-class CardData{
+public class CardData{
    
     public string firstName = "";
     public string lastName = "";
     public string cardID = "";
     public string cardType = "";
     public string validUntil = "";
+    public int id = -1;
     public DateTime validUntilTM;
     public bool isValid = false;
     public CardData(){ }

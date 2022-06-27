@@ -207,7 +207,7 @@ public partial class Form1 : Form
         }
     }
 
-     public static bool isUserInWhiteList(string firstName, string lastName) {
+    public static bool isUserInWhiteList(string firstName, string lastName) {
          ///SELECT* from korisnici Where first_name = 'hllo' AND last_name = 'world'
          //ListView.Clear();
          NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
@@ -237,8 +237,8 @@ public partial class Form1 : Form
              conn.Dispose();
          }
      }
-    
-     void changeWhitelistData(String firstName, String lastName, CardData card) {
+
+    void changeWhitelistData(String firstName, String lastName, CardData card) {
         /// 
         ///Update korisnici SET first_name='gg', last_name='gg', card_type='gg', card_id='gg', valid_until='gg' WHERE first_name='gg' and last_name='gg';
 
@@ -288,7 +288,23 @@ public partial class Form1 : Form
         return 0;
     }
 
-
+    public static bool removeUserByCardID(string cardID)
+    {
+        /// delete from korisnici where card_id = '6969'
+        string naredba = $"delete from korisnici where card_id = '{cardID}'";
+        Form1 newForm = new Form1();
+        int res = newForm.executeNonQuery(naredba);
+        if (res == 0)
+        {
+           // print2list($"[ OK ] Deleted {cardID}");
+            return true;
+        }
+        else
+        {
+            //print2list("[ ER ] Change user");
+            return false;
+        }
+    }
     private void showLog()
     {
         ListView.Clear();
@@ -331,6 +347,45 @@ public partial class Form1 : Form
         }
     }
 
+    public static List<CardData> searchBySingleParam(string key, string value) {
+        List<CardData> cardDatas = new List<CardData>();
+        NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
+        try
+        {
+            // regularni kod
+            conn.Open();
+            string naredba = $"select id,card_id,first_name, last_name,card_type, valid_until from korisnici where {key} like '%{value}%'";
+            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                CardData newCard = new CardData();
+
+                newCard.id = reader.GetInt32(0);
+                newCard.cardID = reader.GetString(1);
+                newCard.firstName = reader.GetString(2);
+                newCard.lastName = reader.GetString(3);
+                newCard.cardType = reader.GetString(4);
+                newCard.validUntil = reader.GetString(5);
+                cardDatas.Add(newCard);
+               // print2list($"{newCard.id.ToString().PadLeft(10)} | {newCard.cardID.PadLeft(15)} | {newCard.firstName.PadLeft(15)} | {newCard.lastName.PadLeft(15)} | {newCard.cardType.PadLeft(15)} | {newCard.validUntil.PadLeft(30)}");
+            }
+            return cardDatas;
+
+        }
+        catch (Exception ex)
+        {
+            // obrada greske
+            //print2list(ex.Message);
+            return cardDatas;
+        }
+        finally
+        {
+            conn.Close();
+            conn.Dispose();
+        }
+    }
+
     private void Form1_Load(object sender, EventArgs e)
     {
         while (activeUser.name.CompareTo("") == 0)
@@ -357,12 +412,17 @@ public partial class Form1 : Form
             addUserToWhiteList(newCard.cardID, newCard.cardType.ToUpper(), newCard.firstName.ToUpper(), newCard.lastName.ToUpper(), newCard.validUntil);
 
         }
-    }   
+    }
 
     private void BtnRemove_Click(object sender, EventArgs e)
     {
         checkAccess("6969");
-        //checkAccess("6969");
+        FrmRemoveUser remove = new FrmRemoveUser();
+        DialogResult res = remove.ShowDialog();
+        if (res == DialogResult.OK)
+        {
+            //checkAccess("6969");
+        }
     }
 
     private void BtnShow_Click(object sender, EventArgs e)
@@ -391,7 +451,7 @@ public partial class Form1 : Form
 
     private void BtnAccGranted_Click(object sender, EventArgs e)
     {
-
+        searchBySingleParam("first_name", "A");
     }
 
     private void BtnFinished_Click(object sender, EventArgs e)
