@@ -1,0 +1,1 @@
+INSERT INTO public."auth"("id","user","pass") VALUES (1,'hello','world');
