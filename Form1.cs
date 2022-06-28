@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using ProjektniZadatak.forms;
 
 namespace ProjektniZadatak;
 
@@ -64,6 +65,7 @@ public partial class Form1 : Form
                 }
                 else {
                     print2list($"ZABRANJENO: {cardID} -- Pokušaj van radnog vremena");
+                    return false;
                 }
             }
             else { 
@@ -205,41 +207,36 @@ public partial class Form1 : Form
         }
     }
 
-    /* public int isUserInWhiteList(string firstName, string lastName) {
+     public static bool isUserInWhiteList(string firstName, string lastName) {
          ///SELECT* from korisnici Where first_name = 'hllo' AND last_name = 'world'
-         ListView.Clear();
+         //ListView.Clear();
          NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
          try
          {
              // regularni kod
              conn.Open();
-             string naredba = $"SELECT first_name from korisnici Where first_name='{firstName}' AND last_name='{lastName}'";
+             string naredba = $"SELECT id from korisnici Where first_name = '{firstName.ToUpper()}' AND last_name='{lastName.ToUpper()}'";
              NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
 
              NpgsqlDataReader reader = command.ExecuteReader();
-             while (reader.Read())
-             {
-                 string name = reader.GetString();
-                 if (name == firstName) {
-                     return 0;
-                 }
-                 return 1;
-             }
-             return 1;
-
+             List<int> ids = new List<int>();
+            if (reader.Read()) {
+                return true;
+            }
+            return false;
          }
          catch (Exception ex)
          {
              // obrada greske
-             print2list(ex.Message);
-             return -1;
+             //print2list(ex.Message);
+             return false;
          }
          finally
          {
              conn.Close();
              conn.Dispose();
          }
-     }*/
+     }
     
      void changeWhitelistData(String firstName, String lastName, CardData card) {
         /// 
@@ -364,7 +361,7 @@ public partial class Form1 : Form
 
     private void BtnRemove_Click(object sender, EventArgs e)
     {
-        //checkAccess("12");
+        checkAccess("6969");
         //checkAccess("6969");
     }
 
@@ -376,13 +373,20 @@ public partial class Form1 : Form
 
     private void BtnChange_Click(object sender, EventArgs e)
     {
-        //changeWhitelistData("000000", "hello", "szom", "fa", "12/12/12", "fa", "szom");
         print2list("Change user");
 
-        CardData updatedCard = new CardData();
-        updatedCard.firstName = "faszz";
-        updatedCard.lastName = "szomaszomat";
-        changeWhitelistData("pisi","kaka",updatedCard);
+        FrmEditUser editUser = new FrmEditUser();
+        DialogResult res = editUser.ShowDialog();
+        if (res == DialogResult.OK) {
+            CardData updatedCard = new CardData();
+            updatedCard.firstName = editUser.newFirstName;
+            updatedCard.lastName = editUser.newLastName;
+            updatedCard.cardID = editUser.cardID;
+            updatedCard.cardType = editUser.cardType;
+            updatedCard.validUntil = editUser.validUntil;
+         
+            changeWhitelistData(editUser.oldFirstName, editUser.oldLastName, updatedCard);
+        }
     }
 
     private void BtnAccGranted_Click(object sender, EventArgs e)
