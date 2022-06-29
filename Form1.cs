@@ -6,14 +6,15 @@ namespace ProjektniZadatak;
 public partial class Form1 : Form
 {
     public user activeUser = new user("", "", 0);
+    public ListView mainListView;
    // CardData newCard = new CardData();
     public Form1()
     {
         InitializeComponent();
         ListView.Columns.RemoveAt(0);
         //ListView.Columns.RemoveAt(1);
+        RS232 serial = new RS232("COM1", ListView);
     }
-
     private void print2list(string poruka)
     {
         if (ListView.InvokeRequired)
