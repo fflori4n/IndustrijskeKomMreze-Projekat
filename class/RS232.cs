@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ProjektniZadatak;
 
+namespace ProjektniZadatak;
 public class RS232
 {
     public SerialPort serial;
@@ -48,6 +49,7 @@ public class RS232
             // msgRcvd = String.Join(",", podaci);
             msgRcvd = System.Text.ASCIIEncoding.Default.GetString(podaci);
             print(">" + msgRcvd);
+            //reactToCardSwipe(msgRcvd);
         }
     }
 

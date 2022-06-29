@@ -54,6 +54,32 @@ public partial class Form1 : Form
         System.Windows.Forms.Application.ExitThread();
     }
 
+    public void reactToCardSwipe(string cardMsg) {
+        Access access = new Access();
+        string[] words = cardMsg.Split(',');
+        if (words[0] == "0")
+        {
+            access.isEntry = true;
+        }
+        else { 
+            access.isEntry = false;
+        }
+
+        access.cardId = words[1];
+        if (checkAccess(access.cardId))
+        {
+            /// TODO: send open CMD
+            CardData newCard = checkCard(access.cardId);
+            access.name = newCard.firstName;
+            access.surname = newCard.lastName;
+            access.cardType = newCard.cardType;
+            logAccess(access);
+        }
+        else { 
+            /// TODO: send do not open
+        }
+        
+    }
     private bool checkAccess(string cardID) {
         CardData checkedCard = checkCard(cardID);
         if (checkedCard.isValid) {
@@ -253,12 +279,9 @@ public partial class Form1 : Form
             print2list("[ ER ] Change user");
         }
     }
-    public void logAccess(string cardId, string cardType, bool isEntry, string name, string surname)
+    public void logAccess(Access newAccess)
     {
-        DateTime now = DateTime.Now;
-        string time = now.Hour.ToString() + ":" + now.Minute.ToString() + ":" + now.Second.ToString();
-        string date = now.Day.ToString() + "/" + now.Month.ToString() + "/" + now.Year.ToString();
-        string naredba = $"INSERT INTO evidencija(\"card_id\",\"card_type\",\"is_entry\",\"name\",\"surname\",\"time\",\"date\") VALUES ('{cardId}','{cardId}',{isEntry},'{name}','{surname}','{time}','{date}')";
+        string naredba = $"INSERT INTO evidencija(\"card_id\",\"card_type\",\"is_entry\",\"name\",\"surname\",\"time\",\"date\") VALUES ('{newAccess.cardId.ToUpper()}','{newAccess.cardType.ToUpper()}',{newAccess.isEntry},'{newAccess.name.ToUpper()}','{newAccess.surname.ToUpper()}','{DateTime.Now.ToShortTimeString()}','{DateTime.Now.ToShortDateString()}')";
         int res = executeNonQuery(naredba);
         if (res == 0) {
             print2list("[ OK ] Event logged");
@@ -452,7 +475,8 @@ public partial class Form1 : Form
 
     private void BtnAccGranted_Click(object sender, EventArgs e)
     {
-        searchBySingleParam("first_name", "A");
+        //searchBySingleParam("first_name", "A");
+        reactToCardSwipe("1,556");
     }
 
     private void BtnFinished_Click(object sender, EventArgs e)
