@@ -209,7 +209,7 @@ partial class Form1
     private Button BtnAccGranted;
     private Button BtnFinished;
     private Button BtnClearTerminal;
-    private ListView ListView;
+    public ListView ListView;
     private System.ComponentModel.BackgroundWorker backgroundWorker1;
     private MenuStrip menuStrip1;
     private ToolStripMenuItem DropMenu;

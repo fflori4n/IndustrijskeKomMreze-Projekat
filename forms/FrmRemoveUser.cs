@@ -21,7 +21,7 @@ namespace ProjektniZadatak.forms
 
         public void BtnSearch_Click(object sender, EventArgs e)
         {
-            cardDatas = Form1.searchBySingleParam(CbxKey.Text.ToUpper(), TxbValue.Text.ToUpper());
+            cardDatas = PostgreSQL.searchBySingleParam(CbxKey.Text.ToUpper(), TxbValue.Text.ToUpper());
             ListBox1.Items.Clear();
             foreach (CardData cardData in cardDatas) { 
                 ListBox1.Items.Add($"{cardData.firstName} {cardData.lastName}\t\t {cardData.cardID}\t {cardData.cardType}");
@@ -35,7 +35,7 @@ namespace ProjektniZadatak.forms
             //ListBox1.Items.Add("fasz2");
             //ListBox1.ClearSelected();
             string delCardID = cardDatas.ElementAt(ListBox1.SelectedIndex).cardID;
-            Form1.removeUserByCardID(delCardID);
+            PostgreSQL.removeUserByCardID(delCardID);
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

@@ -6,28 +6,32 @@ namespace ProjektniZadatak;
 public partial class Form1 : Form
 {
     public user activeUser = new user("", "", 0);
-    public ListView mainListView;
+    public static ListView mainListView;
    // CardData newCard = new CardData();
     public Form1()
     {
         InitializeComponent();
+        mainListView = ListView;
         ListView.Columns.RemoveAt(0);
         //ListView.Columns.RemoveAt(1);
         RS232 serial = new RS232("COM1", ListView);
     }
-    private void print2list(string poruka)
+    public static void print2list(string poruka)
     {
-        if (ListView.InvokeRequired)
+        if (mainListView == null) {
+            return;
+        }
+        if (mainListView.InvokeRequired)
         {
-            ListView.Invoke((MethodInvoker)(() =>
+            mainListView.Invoke((MethodInvoker)(() =>
             {
-                ListView.Items.Add("InvokeRequired");
-                ListView.Items.Add(poruka);
+                mainListView.Items.Add("InvokeRequired");
+                mainListView.Items.Add(poruka);
             }));
         }
         else
         {
-            ListView.Items.Add(poruka);
+            mainListView.Items.Add(poruka);
         }
     }
     private int GetDeterministicHashCode(string str)    /// from: https://andrewlock.net/why-is-string-gethashcode-different-each-time-i-run-my-program-in-net-core/
@@ -69,11 +73,11 @@ public partial class Form1 : Form
         if (checkAccess(access.cardId))
         {
             /// TODO: send open CMD
-            CardData newCard = checkCard(access.cardId);
+            CardData newCard = PostgreSQL.checkCard(access.cardId);
             access.name = newCard.firstName;
             access.surname = newCard.lastName;
             access.cardType = newCard.cardType;
-            logAccess(access);
+            PostgreSQL.logAccess(access);
         }
         else { 
             /// TODO: send do not open
@@ -81,7 +85,7 @@ public partial class Form1 : Form
         
     }
     private bool checkAccess(string cardID) {
-        CardData checkedCard = checkCard(cardID);
+        CardData checkedCard = PostgreSQL.checkCard(cardID);
         if (checkedCard.isValid) {
             if (checkedCard.cardType.CompareTo("OBIČNA") == 0)
             {
@@ -102,54 +106,7 @@ public partial class Form1 : Form
         print2list($"ZABRANJENO: {cardID} -- Istekla kartica");
         return false;
     }
-    private CardData checkCard(string cardID) {
-        /// select first_name, last_name, card_type, valid_until from korisnici where card_id='00'
-        /// 
-        NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
-        
-        try
-        {
-            conn.Open();
-            print2list("Konekcija otvorena...");
-            string naredba = $"select first_name, last_name, card_type, valid_until from korisnici where card_id='{cardID.ToUpper()}'";
-            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
-
-            NpgsqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                CardData card = new CardData();
-                card.firstName = reader.GetString(0).ToUpper();
-                card.lastName = reader.GetString(1).ToUpper();
-                card.cardType = reader.GetString(2).ToUpper();
-                card.validUntil = reader.GetString(3);
-                card.validUntilTM = DateTime.Parse(card.validUntil);
-                //DateTime now = DateTime.Now;
-                if (card.validUntilTM.CompareTo(DateTime.Now) < 0)
-                {
-                    //print2list("card expired");
-                    card.isValid = false;
-                }
-                else {
-                    //print2list("card valid");
-                    card.isValid = true;
-                }
-               
-                print2list($"{card.firstName.PadLeft(10)} | {card.lastName.PadLeft(15)} | {card.cardType.PadLeft(15)} | {card.validUntil.PadLeft(15)}");
-                return card;
-            }
-        }
-        catch (Exception ex)
-        {
-            print2list(ex.Message);
-            return new CardData();
-        }
-        finally
-        {
-            conn.Close();
-            conn.Dispose();
-        }
-        return new CardData();
-    }
+    
     private void login()
     {
 
@@ -224,15 +181,7 @@ public partial class Form1 : Form
             }
         }
     }
-    public void addUserToWhiteList(String cardId, String cardType, string name, string surname, string validUntil) {
-        /// INSERT INTO korisnici("card_id","first_name","last_name") VALUES('1234','hello','world');
-        string naredba = $"INSERT INTO korisnici(\"card_id\",\"first_name\",\"last_name\",\"card_type\",\"valid_until\") VALUES('{cardId.ToUpper()}','{name.ToUpper()}','{surname.ToUpper()}','{cardType.ToUpper()}','{validUntil}');";
-        int res = executeNonQuery(naredba);
-        if (res == 0)
-        {
-            print2list("[ OK ] User added");
-        }
-    }
+    
 
     public static bool isUserInWhiteList(string firstName, string lastName) {
          ///SELECT* from korisnici Where first_name = 'hllo' AND last_name = 'world'
@@ -265,150 +214,8 @@ public partial class Form1 : Form
          }
      }
 
-    void changeWhitelistData(String firstName, String lastName, CardData card) {
-        /// 
-        ///Update korisnici SET first_name='gg', last_name='gg', card_type='gg', card_id='gg', valid_until='gg' WHERE first_name='gg' and last_name='gg';
-
-        string naredba = $"Update korisnici SET first_name='{card.firstName.ToUpper()}', last_name='{card.lastName.ToUpper()}', card_type='{card.cardType.ToUpper()}', card_id='{card.cardID.ToUpper()}', valid_until='{card.validUntil}' WHERE first_name='{firstName.ToUpper()}' and last_name='{lastName.ToUpper()}'";
-        int res = executeNonQuery(naredba);
-        if (res == 0)
-        {
-            print2list("[ OK ] Change user");
-        }
-        else {
-            print2list("[ ER ] Change user");
-        }
-    }
-    public void logAccess(Access newAccess)
-    {
-        string naredba = $"INSERT INTO evidencija(\"card_id\",\"card_type\",\"is_entry\",\"name\",\"surname\",\"time\",\"date\") VALUES ('{newAccess.cardId.ToUpper()}','{newAccess.cardType.ToUpper()}',{newAccess.isEntry},'{newAccess.name.ToUpper()}','{newAccess.surname.ToUpper()}','{DateTime.Now.ToShortTimeString()}','{DateTime.Now.ToShortDateString()}')";
-        int res = executeNonQuery(naredba);
-        if (res == 0) {
-            print2list("[ OK ] Event logged");
-        }
-    }
-
-    public int executeNonQuery(string naredba) {
-        NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
-        try
-        {
-            conn.Open();
-
-            print2list("Konekcija otvorena...");
-            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
-            int res = command.ExecuteNonQuery();
-            print2list(res.ToString());   
-        }
-        catch (Exception ex)
-        {
-            print2list(ex.Message);
-            return -1;
-        }
-        finally
-        {
-            conn.Close();
-            conn.Dispose();
-        }
-        return 0;
-    }
-
-    public static bool removeUserByCardID(string cardID)
-    {
-        /// delete from korisnici where card_id = '6969'
-        string naredba = $"delete from korisnici where card_id = '{cardID}'";
-        Form1 newForm = new Form1();
-        int res = newForm.executeNonQuery(naredba);
-        if (res == 0)
-        {
-           // print2list($"[ OK ] Deleted {cardID}");
-            return true;
-        }
-        else
-        {
-            //print2list("[ ER ] Change user");
-            return false;
-        }
-    }
-    private void showLog()
-    {
-        ListView.Clear();
-        NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
-        try
-        {
-            // regularni kod
-            conn.Open();
-            print2list("Konekcija otvorena...");
-            string naredba = "select is_entry, time, date, card_id, card_type, name, surname from evidencija";
-            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
-
-            NpgsqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                bool isEntry = reader.GetBoolean(0);
-                string time = reader.GetString(1).ToUpper();
-                string date = reader.GetString(2).ToUpper();
-                string cardId = reader.GetString(3).ToUpper();
-                string cardType = reader.GetString(4).ToUpper();
-                string name = reader.GetString(5).ToUpper();
-                string surname = reader.GetString(6).ToUpper();
-                string entry = "Ulaz";
-                if (!isEntry) {
-                    entry = "Izlaz";
-                }
-                print2list($"{entry.PadLeft(10)} | {time.PadLeft(15)} | {date.PadLeft(15)} | {cardId.PadLeft(15)} | {cardType.PadLeft(15)} | {(name + " " + surname).PadLeft(30)}");
-            }
-
-        }
-        catch (Exception ex)
-        {
-            // obrada greske
-            print2list(ex.Message);
-        }
-        finally
-        {
-            conn.Close();
-            conn.Dispose();
-        }
-    }
-
-    public static List<CardData> searchBySingleParam(string key, string value) {
-        List<CardData> cardDatas = new List<CardData>();
-        NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
-        try
-        {
-            // regularni kod
-            conn.Open();
-            string naredba = $"select id,card_id,first_name, last_name,card_type, valid_until from korisnici where {key} like '%{value}%'";
-            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
-            NpgsqlDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                CardData newCard = new CardData();
-
-                newCard.id = reader.GetInt32(0);
-                newCard.cardID = reader.GetString(1);
-                newCard.firstName = reader.GetString(2);
-                newCard.lastName = reader.GetString(3);
-                newCard.cardType = reader.GetString(4);
-                newCard.validUntil = reader.GetString(5);
-                cardDatas.Add(newCard);
-               // print2list($"{newCard.id.ToString().PadLeft(10)} | {newCard.cardID.PadLeft(15)} | {newCard.firstName.PadLeft(15)} | {newCard.lastName.PadLeft(15)} | {newCard.cardType.PadLeft(15)} | {newCard.validUntil.PadLeft(30)}");
-            }
-            return cardDatas;
-
-        }
-        catch (Exception ex)
-        {
-            // obrada greske
-            //print2list(ex.Message);
-            return cardDatas;
-        }
-        finally
-        {
-            conn.Close();
-            conn.Dispose();
-        }
-    }
+    
+    
 
     private void Form1_Load(object sender, EventArgs e)
     {
@@ -433,7 +240,7 @@ public partial class Form1 : Form
             newCard.cardType = addUser.cardType;
             newCard.validUntil = addUser.validUntil;
             newCard.validUntilTM = DateTime.Parse(newCard.validUntil);
-            addUserToWhiteList(newCard.cardID, newCard.cardType.ToUpper(), newCard.firstName.ToUpper(), newCard.lastName.ToUpper(), newCard.validUntil);
+            PostgreSQL.addUserToWhiteList(newCard.cardID, newCard.cardType.ToUpper(), newCard.firstName.ToUpper(), newCard.lastName.ToUpper(), newCard.validUntil);
 
         }
     }
@@ -451,7 +258,7 @@ public partial class Form1 : Form
 
     private void BtnShow_Click(object sender, EventArgs e)
     {
-        showLog();
+        PostgreSQL.showLog();
         
     }
 
@@ -469,7 +276,7 @@ public partial class Form1 : Form
             updatedCard.cardType = editUser.cardType;
             updatedCard.validUntil = editUser.validUntil;
          
-            changeWhitelistData(editUser.oldFirstName, editUser.oldLastName, updatedCard);
+            PostgreSQL.changeWhitelistData(editUser.oldFirstName, editUser.oldLastName, updatedCard);
         }
     }
 
