@@ -7,14 +7,15 @@ public partial class Form1 : Form
 {
     public user activeUser = new user("", "", 0);
     public static ListView mainListView;
-   // CardData newCard = new CardData();
+    public RS232 serial;
+    // CardData newCard = new CardData();
     public Form1()
     {
         InitializeComponent();
         mainListView = ListView;
         ListView.Columns.RemoveAt(0);
         //ListView.Columns.RemoveAt(1);
-        RS232 serial = new RS232("COM1", ListView);
+        //RS232 serial = new RS232("COM2", ListView);
     }
     public static void print2list(string poruka)
     {
@@ -25,7 +26,7 @@ public partial class Form1 : Form
         {
             mainListView.Invoke((MethodInvoker)(() =>
             {
-                mainListView.Items.Add("InvokeRequired");
+               // mainListView.Items.Add("InvokeRequired");
                 mainListView.Items.Add(poruka);
             }));
         }
@@ -58,7 +59,7 @@ public partial class Form1 : Form
         System.Windows.Forms.Application.ExitThread();
     }
 
-    public void reactToCardSwipe(string cardMsg) {
+    public static void reactToCardSwipe(string cardMsg) {
         Access access = new Access();
         string[] words = cardMsg.Split(',');
         if (words[0] == "0")
@@ -84,7 +85,7 @@ public partial class Form1 : Form
         }
         
     }
-    private bool checkAccess(string cardID) {
+    private static bool checkAccess(string cardID) {
         CardData checkedCard = PostgreSQL.checkCard(cardID);
         if (checkedCard.isValid) {
             if (checkedCard.cardType.CompareTo("OBIČNA") == 0)
@@ -150,6 +151,7 @@ public partial class Form1 : Form
                     activeUser.pass = login.pass;
                     activeUser.accessLvl = uloga;
                     LblUser0.Text = activeUser.name;
+                    serial = new RS232(login.comPort);
 
                     if (activeUser.accessLvl != 0)
                     {
@@ -182,41 +184,6 @@ public partial class Form1 : Form
         }
     }
     
-
-    public static bool isUserInWhiteList(string firstName, string lastName) {
-         ///SELECT* from korisnici Where first_name = 'hllo' AND last_name = 'world'
-         //ListView.Clear();
-         NpgsqlConnection conn = new NpgsqlConnection($"Host = localhost; Port = 5432; Username = postgres; Password = foska000; Database = postgres");
-         try
-         {
-             // regularni kod
-             conn.Open();
-             string naredba = $"SELECT id from korisnici Where first_name = '{firstName.ToUpper()}' AND last_name='{lastName.ToUpper()}'";
-             NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
-
-             NpgsqlDataReader reader = command.ExecuteReader();
-             List<int> ids = new List<int>();
-            if (reader.Read()) {
-                return true;
-            }
-            return false;
-         }
-         catch (Exception ex)
-         {
-             // obrada greske
-             //print2list(ex.Message);
-             return false;
-         }
-         finally
-         {
-             conn.Close();
-             conn.Dispose();
-         }
-     }
-
-    
-    
-
     private void Form1_Load(object sender, EventArgs e)
     {
         while (activeUser.name.CompareTo("") == 0)

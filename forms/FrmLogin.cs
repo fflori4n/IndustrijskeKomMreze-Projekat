@@ -15,9 +15,16 @@ namespace ProjektniZadatak.forms
         public string user = "";
         public string pass = "";
         public string formType = "";
+        public string comPort = "";
         public FrmLogin(string formType)
         {
             InitializeComponent();
+            string[] ports = System.IO.Ports.SerialPort.GetPortNames();
+            for (int i = 0; i < ports.Length; i++)
+            {
+                CbxComPort.Items.Add(ports[i]);
+            }
+            CbxComPort.SelectedIndex = 0;
         }
 
         private void FrmLogin_Load(object sender, EventArgs e)
@@ -43,6 +50,7 @@ namespace ProjektniZadatak.forms
             }
             user = TxbUser.Text;
             pass = TxbPass.Text;
+            comPort = CbxComPort.Text;
 
             this.DialogResult = DialogResult.OK;
             this.Close();
@@ -62,6 +70,11 @@ namespace ProjektniZadatak.forms
             Console.WriteLine("cancel pressd");
             this.DialogResult = DialogResult.Abort;
             this.Close();
+        }
+
+        private void CbxComPort_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

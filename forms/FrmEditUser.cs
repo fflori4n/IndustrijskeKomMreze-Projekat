@@ -28,7 +28,7 @@ namespace ProjektniZadatak.forms
 
         private void BtnCheck_Click(object sender, EventArgs e)
         {
-            if (Form1.isUserInWhiteList(TxbOldFirstName.Text, TxbOldLastName.Text))
+            if (PostgreSQL.isUserInWhiteList(TxbOldFirstName.Text, TxbOldLastName.Text))
             {
                 oldFirstName = TxbOldFirstName.Text;
                 oldLastName = TxbOldLastName.Text;

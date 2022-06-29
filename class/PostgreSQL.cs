@@ -17,7 +17,7 @@ public class PostgreSQL
         {
             conn.Open();
 
-            Form1.print2list("Konekcija otvorena...");
+            //Form1.print2list("Konekcija otvorena...");
             NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
             int res = command.ExecuteNonQuery();
             Form1.print2list(res.ToString());
@@ -85,6 +85,38 @@ public class PostgreSQL
             Form1.print2list("[ OK ] Event logged");
         }
     }
+    public static bool isUserInWhiteList(string firstName, string lastName)
+    {
+        ///SELECT* from korisnici Where first_name = 'hllo' AND last_name = 'world'
+        //ListView.Clear();
+        NpgsqlConnection conn = new NpgsqlConnection(connectionCredStr);
+        try
+        {
+            // regularni kod
+            conn.Open();
+            string naredba = $"SELECT id from korisnici Where first_name = '{firstName.ToUpper()}' AND last_name='{lastName.ToUpper()}'";
+            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
+
+            NpgsqlDataReader reader = command.ExecuteReader();
+            List<int> ids = new List<int>();
+            if (reader.Read())
+            {
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            // obrada greske
+            //print2list(ex.Message);
+            return false;
+        }
+        finally
+        {
+            conn.Close();
+            conn.Dispose();
+        }
+    }
     public static List<CardData> searchBySingleParam(string key, string value)
     {
         List<CardData> cardDatas = new List<CardData>();
@@ -134,7 +166,7 @@ public class PostgreSQL
         try
         {
             conn.Open();
-            Form1.print2list("Konekcija otvorena...");
+           // Form1.print2list("Konekcija otvorena...");
             string naredba = checkCardSQLCmdStr;
             NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
 

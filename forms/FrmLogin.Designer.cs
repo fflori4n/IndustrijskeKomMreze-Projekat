@@ -36,6 +36,8 @@
             this.TxbPass = new System.Windows.Forms.TextBox();
             this.LblLoginPromt = new System.Windows.Forms.Label();
             this.BtnCancel = new System.Windows.Forms.Button();
+            this.CbxComPort = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // BtnLogin
@@ -61,7 +63,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(275, 144);
+            this.label1.Location = new System.Drawing.Point(275, 71);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(75, 20);
             this.label1.TabIndex = 2;
@@ -70,7 +72,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(275, 211);
+            this.label2.Location = new System.Drawing.Point(275, 124);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(70, 20);
             this.label2.TabIndex = 3;
@@ -78,14 +80,14 @@
             // 
             // TxbUser
             // 
-            this.TxbUser.Location = new System.Drawing.Point(275, 167);
+            this.TxbUser.Location = new System.Drawing.Point(275, 94);
             this.TxbUser.Name = "TxbUser";
             this.TxbUser.Size = new System.Drawing.Size(289, 27);
             this.TxbUser.TabIndex = 4;
             // 
             // TxbPass
             // 
-            this.TxbPass.Location = new System.Drawing.Point(275, 234);
+            this.TxbPass.Location = new System.Drawing.Point(275, 147);
             this.TxbPass.Name = "TxbPass";
             this.TxbPass.Size = new System.Drawing.Size(289, 27);
             this.TxbPass.TabIndex = 5;
@@ -108,11 +110,31 @@
             this.BtnCancel.UseVisualStyleBackColor = true;
             this.BtnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
+            // CbxComPort
+            // 
+            this.CbxComPort.FormattingEnabled = true;
+            this.CbxComPort.Location = new System.Drawing.Point(275, 200);
+            this.CbxComPort.Name = "CbxComPort";
+            this.CbxComPort.Size = new System.Drawing.Size(122, 28);
+            this.CbxComPort.TabIndex = 8;
+            this.CbxComPort.SelectedIndexChanged += new System.EventHandler(this.CbxComPort_SelectedIndexChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(275, 177);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(70, 20);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "Com Port";
+            // 
             // FrmLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.CbxComPort);
             this.Controls.Add(this.BtnCancel);
             this.Controls.Add(this.LblLoginPromt);
             this.Controls.Add(this.TxbPass);
@@ -139,5 +161,7 @@
         private TextBox TxbPass;
         private Label LblLoginPromt;
         private Button BtnCancel;
+        private ComboBox CbxComPort;
+        private Label label3;
     }
 }
