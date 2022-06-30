@@ -79,11 +79,13 @@ public partial class Form1 : Form
             access.surname = newCard.lastName;
             access.cardType = newCard.cardType;
             PostgreSQL.logAccess(access);
+            TCPClient.send("03, 78, 58, 68");
         }
-        else { 
+        else {
             /// TODO: send do not open
+            TCPClient.send("03, 78, 58, 90");
         }
-        
+
     }
     private static bool checkAccess(string cardID) {
         CardData checkedCard = PostgreSQL.checkCard(cardID);
@@ -152,6 +154,8 @@ public partial class Form1 : Form
                     activeUser.accessLvl = uloga;
                     LblUser0.Text = activeUser.name;
                     serial = new RS232(login.comPort);
+                    TCPClient.connect("127.1.1.0", "7000");
+                    TCPClient.send("hello world! Im debuging");
 
                     if (activeUser.accessLvl != 0)
                     {
@@ -250,11 +254,19 @@ public partial class Form1 : Form
     private void BtnAccGranted_Click(object sender, EventArgs e)
     {
         //searchBySingleParam("first_name", "A");
-        reactToCardSwipe("1,556");
+        //reactToCardSwipe("1,556");
+        TCPClient.send("03, 78, 58, 80");
+        Access access = new Access();
+        access.cardId = "0000";
+        access.isEntry = true;
+        access.name = "DOZVOLA PUTEM APLIKACIJE";
+        access.surname = "";
+        PostgreSQL.logAccess(access);
     }
 
     private void BtnFinished_Click(object sender, EventArgs e)
     {
+        TCPClient.dispose();
         exit();
     }
 
@@ -263,39 +275,41 @@ public partial class Form1 : Form
         ListView.Clear();
     }
 
-    private void DropMenu0_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+   /* private void DropMenu0_Opening(object sender, System.ComponentModel.CancelEventArgs e)
     {
 
-    }
+    }*/
 
-    private void toolStripTextBox3_Click(object sender, EventArgs e)
+   /* private void toolStripTextBox3_Click(object sender, EventArgs e)
     {
 
-    }
+    }*/
 
-    private void label1_Click(object sender, EventArgs e)
+   /* private void label1_Click(object sender, EventArgs e)
     {
 
-    }
+    }*/
 
-    private void toolStripComboBox1_Click(object sender, EventArgs e)
+    /*private void toolStripComboBox1_Click(object sender, EventArgs e)
     {
 
-    }
+    }*/
 
-    private void toolStripMenuItem1_Click(object sender, EventArgs e)
+    /*private void toolStripMenuItem1_Click(object sender, EventArgs e)
     {
 
-    }
+    }*/
 
-    private void toolStripTextBox1_Click(object sender, EventArgs e)
+    /*private void toolStripTextBox1_Click(object sender, EventArgs e)
     {
 
-    }
+    }*/
 
     private void BtnLogout_Click_1(object sender, EventArgs e)
     {
         activeUser = new user("", "", 0);
+        TCPClient.dispose();
+        serial.dispose();
         while (activeUser.name.CompareTo("") == 0)
         {
             login();
@@ -307,8 +321,8 @@ public partial class Form1 : Form
         login();
     }
 
-    private void ListView_SelectedIndexChanged(object sender, EventArgs e)
+   /* private void ListView_SelectedIndexChanged(object sender, EventArgs e)
     {
 
-    }
+    }*/
 }

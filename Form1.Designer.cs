@@ -129,7 +129,7 @@ partial class Form1
             this.ListView.TabIndex = 7;
             this.ListView.UseCompatibleStateImageBehavior = false;
             this.ListView.View = System.Windows.Forms.View.List;
-            this.ListView.SelectedIndexChanged += new System.EventHandler(this.ListView_SelectedIndexChanged);
+            //this.ListView.SelectedIndexChanged += new System.EventHandler(this.ListView_SelectedIndexChanged);
             // 
             // menuStrip1
             // 
@@ -151,14 +151,14 @@ partial class Form1
             this.DropMenu.Name = "DropMenu";
             this.DropMenu.Size = new System.Drawing.Size(52, 24);
             this.DropMenu.Text = "User";
-            this.DropMenu.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            //this.DropMenu.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // LblUser0
             // 
             this.LblUser0.Name = "LblUser0";
             this.LblUser0.Size = new System.Drawing.Size(100, 27);
             this.LblUser0.Text = "Not logged in!";
-            this.LblUser0.Click += new System.EventHandler(this.toolStripTextBox1_Click);
+            //this.LblUser0.Click += new System.EventHandler(this.toolStripTextBox1_Click);
             // 
             // BtnLogin
             // 

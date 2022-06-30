@@ -27,10 +27,14 @@ public class RS232
     public RS232(string portName) {
         
         this.portName = portName;
-        serial = new SerialPort(this.portName);    /// TODO: selection of port!
+        serial = new SerialPort(this.portName);
         serial.Open();
         serial.DataReceived += SerialDataReceived;
-        Form1.print2list($"Connceted to serial: {this.portName}");
+        Form1.print2list($"[ OK ] Serial connected: {this.portName}");
+    }
+    public void dispose() {
+        serial.Close();
+        serial.Dispose();
     }
 
     private void SerialDataReceived(object sender, SerialDataReceivedEventArgs e)

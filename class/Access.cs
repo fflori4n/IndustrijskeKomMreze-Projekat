@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 public class Access
 {
-    public string cardId;
-    public string cardType;
-    public bool isEntry;
-    public string name;
-    public string surname;
+    public string cardId = "0000";
+    public string cardType = "OBICNA";
+    public bool isEntry = true;
+    public string name = "JOHN";
+    public string surname = "DOE";
 
     public Access() { 
     }
