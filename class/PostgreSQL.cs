@@ -117,6 +117,48 @@ public class PostgreSQL
             conn.Dispose();
         }
     }
+
+    public static int isUserInside(string cardId) {
+        ///select is_entry from evidencija where card_id='1234'
+        List<CardData> cardDatas = new List<CardData>();
+        NpgsqlConnection conn = new NpgsqlConnection(connectionCredStr);
+        string naredba = $"select is_entry from evidencija where card_id='{cardId}'";
+
+        try
+        {
+            // regularni kod
+            conn.Open();
+            NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
+            NpgsqlDataReader reader = command.ExecuteReader();
+            bool valInDb = false;
+            while (reader.Read())
+            {
+                valInDb = reader.GetBoolean(0);
+            }
+
+            if (valInDb)
+            {
+                return 0;
+            }
+            else { 
+                return 1;   
+            }
+            //return cardDatas;
+
+        }
+        catch (Exception ex)
+        {
+            // obrada greske
+            //print2list(ex.Message);
+            //return cardDatas;
+            return -1;
+        }
+        finally
+        {
+            conn.Close();
+            conn.Dispose();
+        }
+    }
     public static List<CardData> searchBySingleParam(string key, string value)
     {
         List<CardData> cardDatas = new List<CardData>();
@@ -189,7 +231,7 @@ public class PostgreSQL
                     card.isValid = true;
                 }
 
-                Form1.print2list($"{card.firstName.PadLeft(10)} | {card.lastName.PadLeft(15)} | {card.cardType.PadLeft(15)} | {card.validUntil.PadLeft(15)}");
+                //Form1.print2list($"{card.firstName.PadLeft(10)} | {card.lastName.PadLeft(15)} | {card.cardType.PadLeft(15)} | {card.validUntil.PadLeft(15)}");
                 return card;
             }
         }
@@ -221,18 +263,22 @@ public class PostgreSQL
             while (reader.Read())
             {
                 bool isEntry = reader.GetBoolean(0);
-                string time = reader.GetString(1).ToUpper();
-                string date = reader.GetString(2).ToUpper();
-                string cardId = reader.GetString(3).ToUpper();
-                string cardType = reader.GetString(4).ToUpper();
+                string time = reader.GetString(1).ToUpper().PadLeft(8);
+                string date = reader.GetString(2).ToUpper().PadLeft(10);
+                string cardId = reader.GetString(3).ToUpper().PadLeft(5);
+                string cardType = reader.GetString(4).ToUpper().PadLeft(10);
                 string name = reader.GetString(5).ToUpper();
                 string surname = reader.GetString(6).ToUpper();
-                string entry = "Ulaz";
+                string entry = "Ulaz".PadLeft("Ručna dozvola".Length);
                 if (!isEntry)
                 {
-                    entry = "Izlaz";
+                    entry = "Izlaz".PadLeft("Ručna dozvola".Length);
                 }
-                Form1.print2list($"{entry.PadLeft(10)} | {time.PadLeft(15)} | {date.PadLeft(15)} | {cardId.PadLeft(15)} | {cardType.PadLeft(15)} | {(name + " " + surname).PadLeft(30)}");
+                //Form1.print2list($"{entry} | {time} | {date} | {cardId} | {cardType} | {(name + " " + surname)}");
+                if ((name).CompareTo("DOZVOLA PUTEM APLIKACIJE") == 0) {
+                    entry = "Ručna dozvola";
+                }//{entry}
+                Form1.print2list($"{entry}|{time}|{date}|{cardId}|{cardType}| {(name + " " + surname)}");
             }
 
         }

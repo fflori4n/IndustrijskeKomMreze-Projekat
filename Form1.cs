@@ -1,21 +1,26 @@
-﻿using Npgsql;
+﻿#define _checkMultipleEntry
+
+using Npgsql;
 using ProjektniZadatak.forms;
 
 namespace ProjektniZadatak;
 
 public partial class Form1 : Form
 {
+
     public user activeUser = new user("", "", 0);
     public static ListView mainListView;
     public RS232 serial;
-    // CardData newCard = new CardData();
     public Form1()
     {
         InitializeComponent();
         mainListView = ListView;
-        ListView.Columns.RemoveAt(0);
-        //ListView.Columns.RemoveAt(1);
-        //RS232 serial = new RS232("COM2", ListView);
+
+        /// from: https://stackoverflow.com/questions/2309046/making-listview-scrollable-in-vertical-direction
+        ListView.Scrollable = true;
+        ListView.View = View.Details;
+        ListView.HeaderStyle = ColumnHeaderStyle.None;
+
     }
     public static void print2list(string poruka)
     {
@@ -26,7 +31,6 @@ public partial class Form1 : Form
         {
             mainListView.Invoke((MethodInvoker)(() =>
             {
-               // mainListView.Items.Add("InvokeRequired");
                 mainListView.Items.Add(poruka);
             }));
         }
@@ -71,30 +75,44 @@ public partial class Form1 : Form
         }
 
         access.cardId = words[1];
-        if (checkAccess(access.cardId))
+        if (checkAccess(access.cardId, access.isEntry))
         {
-            /// TODO: send open CMD
+
+#if _checkMultipleEntry
+            /// check if user already entered - optional -************************************************
+            int res = PostgreSQL.isUserInside(access.cardId);
+            if (res == 0 && access.isEntry){
+                print2list($"ZABRANJENO: {access.cardId} -- Pokušaj ulaza više puta istim karticom");
+                TCPClient.send("03, 78, 58, 90"); /// send DO NOT OPEN
+                return;
+            }
+            /// -************************************************
+#endif
             CardData newCard = PostgreSQL.checkCard(access.cardId);
             access.name = newCard.firstName;
             access.surname = newCard.lastName;
             access.cardType = newCard.cardType;
+
             PostgreSQL.logAccess(access);
-            TCPClient.send("03, 78, 58, 68");
+            TCPClient.send("03, 78, 58, 68"); /// send OPEN
+            string ulaz = "IZLAZ";
+            if (access.isEntry) {
+                ulaz = "ULAZ";
+            }
+            print2list($"DOZVOLJENO: {access.cardId} - {ulaz} - {access.name} {access.surname} - {access.cardType} Kartica");
         }
         else {
-            /// TODO: send do not open
-            TCPClient.send("03, 78, 58, 90");
+            TCPClient.send("03, 78, 58, 90"); /// send DO NOT OPEN
         }
 
     }
-    private static bool checkAccess(string cardID) {
+    private static bool checkAccess(string cardID, bool isEntry) {
         CardData checkedCard = PostgreSQL.checkCard(cardID);
         if (checkedCard.isValid) {
-            if (checkedCard.cardType.CompareTo("OBIČNA") == 0)
+            if (checkedCard.cardType.CompareTo("OBIČNA") == 0 && isEntry)
             {
                 if (DateTime.Now.Hour > 7 && DateTime.Now.Hour < 15)
                 {
-                    print2list($"DOZVOLJENO: {cardID}");
                     return true;
                 }
                 else {
@@ -136,14 +154,6 @@ public partial class Form1 : Form
                     string salt = "helloworldBlahBlah";
                     passHash = GetDeterministicHashCode((login.pass + login.user + salt)).ToString();
 
-
-                    /*activeUser.name = login.user;
-                    activeUser.pass = login.pass;
-                    activeUser.accessLvl = uloga;
-                    LblUser0.Text = activeUser.name;*/
-
-                    print2list("Konekcija otvorena...");
-                    //string naredba = $"SELECT access_lvl from auth WHERE user='{login.user}' and pass='{login.pass}'";
                     string naredba = $"SELECT access_lvl from auth where user_name='{login.user}' and pass='{passHash}'";
                     NpgsqlCommand command = new NpgsqlCommand(naredba, conn);
 
@@ -154,9 +164,10 @@ public partial class Form1 : Form
                     activeUser.accessLvl = uloga;
                     LblUser0.Text = activeUser.name;
                     serial = new RS232(login.comPort);
-                    TCPClient.connect("127.1.1.0", "7000");
-                    TCPClient.send("hello world! Im debuging");
-
+                    TCPClient.connect(login.tcpIpAddr, login.tcpPort);
+                    TCPClient.send("C# Client connected!");
+                    mainListView.Refresh();
+                    mainListView = ListView;
                     if (activeUser.accessLvl != 0)
                     {
                         BtnAdd.Enabled = false;
@@ -176,8 +187,8 @@ public partial class Form1 : Form
                 {
                     // obrada greske
                     print2list(ex.Message);
-                    print2list("login atempt: user:" + login.user + " pass: " + passHash);
-                    //insert into auth("id","user_name","pass","access_lvl") VALUES (3,'admin',979195496,0)
+                    print2list("login atempt: user:" + login.user + " pass: " + passHash); /// print to screen so I can add hash to database for new users
+                    
                 }
                 finally
                 {
@@ -198,7 +209,6 @@ public partial class Form1 : Form
 
     private void BtnAdd_Click(object sender, EventArgs e)
     {
-        // logAccess("1234", "temp", false, "unknown", "unknown");
         forms.FrmAddUser addUser = new forms.FrmAddUser();
         DialogResult res = addUser.ShowDialog();
         if (res == DialogResult.OK)
@@ -218,7 +228,6 @@ public partial class Form1 : Form
 
     private void BtnRemove_Click(object sender, EventArgs e)
     {
-        checkAccess("6969");
         FrmRemoveUser remove = new FrmRemoveUser();
         DialogResult res = remove.ShowDialog();
         if (res == DialogResult.OK)
@@ -253,8 +262,6 @@ public partial class Form1 : Form
 
     private void BtnAccGranted_Click(object sender, EventArgs e)
     {
-        //searchBySingleParam("first_name", "A");
-        //reactToCardSwipe("1,556");
         TCPClient.send("03, 78, 58, 80");
         Access access = new Access();
         access.cardId = "0000";
@@ -272,57 +279,26 @@ public partial class Form1 : Form
 
     private void BtnClearTerminal_Click(object sender, EventArgs e)
     {
-        ListView.Clear();
+        mainListView.Items.Clear();
     }
-
-   /* private void DropMenu0_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-    {
-
-    }*/
-
-   /* private void toolStripTextBox3_Click(object sender, EventArgs e)
-    {
-
-    }*/
-
-   /* private void label1_Click(object sender, EventArgs e)
-    {
-
-    }*/
-
-    /*private void toolStripComboBox1_Click(object sender, EventArgs e)
-    {
-
-    }*/
-
-    /*private void toolStripMenuItem1_Click(object sender, EventArgs e)
-    {
-
-    }*/
-
-    /*private void toolStripTextBox1_Click(object sender, EventArgs e)
-    {
-
-    }*/
 
     private void BtnLogout_Click_1(object sender, EventArgs e)
     {
         activeUser = new user("", "", 0);
         TCPClient.dispose();
-        serial.dispose();
+        if (serial is not null) {
+            serial.dispose();
+        }
         while (activeUser.name.CompareTo("") == 0)
         {
+            this.Visible = false;
             login();
         }
+        this.Visible = true;
     }
 
     private void BtnLogin_Click_1(object sender, EventArgs e)
     {
         login();
     }
-
-   /* private void ListView_SelectedIndexChanged(object sender, EventArgs e)
-    {
-
-    }*/
 }

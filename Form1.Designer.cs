@@ -118,18 +118,18 @@ partial class Form1
             // 
             // ListView
             // 
-            this.ListView.Alignment = System.Windows.Forms.ListViewAlignment.Default;
             this.ListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1});
-            this.ListView.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.ListView.FullRowSelect = true;
-            this.ListView.Location = new System.Drawing.Point(207, 60);
+            this.ListView.Font = new System.Drawing.Font("Cascadia Mono", 7.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.ListView.Location = new System.Drawing.Point(207, 34);
             this.ListView.Name = "ListView";
-            this.ListView.Size = new System.Drawing.Size(581, 330);
+            this.ListView.Size = new System.Drawing.Size(581, 356);
             this.ListView.TabIndex = 7;
             this.ListView.UseCompatibleStateImageBehavior = false;
-            this.ListView.View = System.Windows.Forms.View.List;
-            //this.ListView.SelectedIndexChanged += new System.EventHandler(this.ListView_SelectedIndexChanged);
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Width = 581;
             // 
             // menuStrip1
             // 
@@ -151,14 +151,12 @@ partial class Form1
             this.DropMenu.Name = "DropMenu";
             this.DropMenu.Size = new System.Drawing.Size(52, 24);
             this.DropMenu.Text = "User";
-            //this.DropMenu.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // LblUser0
             // 
             this.LblUser0.Name = "LblUser0";
             this.LblUser0.Size = new System.Drawing.Size(100, 27);
             this.LblUser0.Text = "Not logged in!";
-            //this.LblUser0.Click += new System.EventHandler(this.toolStripTextBox1_Click);
             // 
             // BtnLogin
             // 

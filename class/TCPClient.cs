@@ -18,6 +18,10 @@ public class TCPClient
     private static Timer timer;
 
     public static void send(String msg) {
+        if (stream is null) {
+            Form1.print2list("[ER] TCP not connected!");
+            return;
+        }
         try
         {
             byte[] data = Encoding.UTF8.GetBytes(msg + "\r\n");
@@ -52,8 +56,17 @@ public class TCPClient
     }
 
     public static void dispose() {
-        tCPclient.Close();
-        tCPclient.Dispose();
+        stream.Dispose();
+        if (tCPclient is null) { 
+            return;
+        }
+        try {  
+            tCPclient.Close();
+            tCPclient.Dispose();
+        }
+        catch(Exception ex) {
+            Form1.print2list("TCP_DISPOSE:" + ex.Message);
+        }
     }
 
     private static void timerCallback(object sender, EventArgs e)
@@ -72,7 +85,7 @@ public class TCPClient
         }
         catch (Exception ex)
         {
-            Form1.print2list(ex.Message);
+           // Form1.print2list(ex.Message);
         }
 
     }
